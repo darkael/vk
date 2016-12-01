@@ -1,7 +1,6 @@
 #define GLFW_INCLUDE_VULKAN
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define STB_IMAGE_IMPLEMENTATION
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
@@ -22,9 +21,8 @@
 #include <glm/gtx/hash.hpp>
 
 #include "vdeleter.h"
-#include "lib/stb_image.h"
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "lib/tiny_obj_loader.h"
+#include "stb_image.h"
+#include "tiny_obj_loader.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;

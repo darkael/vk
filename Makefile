@@ -2,7 +2,7 @@ CC=g++
 PROG=vulkan
 CXXFLAGS=-Werror -Wall -Wno-misleading-indentation -O2
 LDFLAGS=-lvulkan -lglfw
-SOURCES=vulkan.cpp
+SOURCES=vulkan.cpp tiny_obj_loader.cpp stb_image.cpp
 SHADERS=shaders/frag.spv shaders/vert.spv
 OBJS=$(SOURCES:.cpp=.o)
 .DEFAULT_GOAL:=all
