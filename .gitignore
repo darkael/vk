@@ -1,0 +1,8 @@
+*.spv
+*.swp
+*.obj
+*.jpg
+*.o
+vulkan
+.d/
+.depend
