@@ -27,10 +27,8 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-
 const std::string MODEL_PATH = "model.obj";
 const std::string TEXTURE_PATH = "model.jpg";
-
 
 const std::vector<const char*> validationLayers = {
     "VK_LAYER_LUNARG_standard_validation"
@@ -65,21 +63,6 @@ class HelloTriangleApplication {
         GLFWwindow *window;
         std::chrono::time_point<std::chrono::steady_clock> last_time;
         double frames{0};
-        //VDeleter<VkDevice> device{vkDestroyDevice};
-        //VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-        //VkQueue graphicsQueue;
-        //VkQueue presentQueue;
-        //VDeleter<VkSurfaceKHR> surface{instance, vkDestroySurfaceKHR}
-        //VDeleter<VkSwapchainKHR> swapChain{device, vkDestroySwapchainKHR};
-        //std::vector<VkImage> swapChainImages;
-        //std::vector<VDeleter<VkImageView>> swapChainImageViews;
-        //VkFormat swapChainImageFormat;
-        //VkExtent2D swapChainExtent;
-        //VDeleter<VkRenderPass> renderPass{device, vkDestroyRenderPass};
-        //VDeleter<VkPipelineLayout> pipelineLayout{device, vkDestroyPipelineLayout};
-        //VDeleter<VkPipeline> graphicsPipeline{device, vkDestroyPipeline};
-        //std::vector<VDeleter<VkFramebuffer>> swapChainFramebuffers;
-        //VDeleter<VkCommandPool> commandPool{device, vkDestroyCommandPool};
         std::vector<VkCommandBuffer> commandBuffers;
         VDeleter<VkSemaphore> imageAvailableSemaphore{device, vkDestroySemaphore};
         VDeleter<VkSemaphore> renderFinishedSemaphore{device, vkDestroySemaphore};
@@ -87,15 +70,11 @@ class HelloTriangleApplication {
         VDeleter<VkDeviceMemory> vertexBufferMemory{device, vkFreeMemory};
         VDeleter<VkBuffer> indexBuffer{device, vkDestroyBuffer};
         VDeleter<VkDeviceMemory> indexBufferMemory{device, vkFreeMemory};
-        //VDeleter<VkDescriptorSetLayout> descriptorSetLayout{device, vkDestroyDescriptorSetLayout};
 
         VDeleter<VkBuffer> uniformStagingBuffer{device, vkDestroyBuffer};
         VDeleter<VkDeviceMemory> uniformStagingBufferMemory{device, vkFreeMemory};
         VDeleter<VkBuffer> uniformBuffer{device, vkDestroyBuffer};
         VDeleter<VkDeviceMemory> uniformBufferMemory{device, vkFreeMemory};
-
-        //VDeleter<VkDescriptorPool> descriptorPool{device, vkDestroyDescriptorPool};
-        //VkDescriptorSet descriptorSet;
 
         VDeleter<VkImage> stagingImage{device, vkDestroyImage};
         VDeleter<VkDeviceMemory> stagingImageMemory{device, vkFreeMemory};
@@ -118,32 +97,6 @@ class HelloTriangleApplication {
             }
 
         }
-
-		static std::vector<char> readFile(const std::string& filename) {
-			std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-			if (!file.is_open()) {
-				throw std::runtime_error("failed to open file!");
-			}
-
-            size_t fileSize = (size_t) file.tellg();
-            std::vector<char> buffer(fileSize);
-            file.seekg(0);
-            file.read(buffer.data(), fileSize);
-            file.close();
-            return buffer;
-		}
-
-        void createShaderModule(const std::vector<char>& code, VDeleter<VkShaderModule>& shaderModule) {
-            VkShaderModuleCreateInfo createInfo = {};
-            createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            createInfo.codeSize = code.size();
-            createInfo.pCode = (uint32_t*) code.data();
-            if (vkCreateShaderModule(device, &createInfo, nullptr, shaderModule.replace()) != VK_SUCCESS) {
-                    throw std::runtime_error("failed to create shader module!");
-            }
-        }
-
 
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
             VkPhysicalDeviceMemoryProperties memProperties;
@@ -412,41 +365,6 @@ class HelloTriangleApplication {
             createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, uniformBuffer, uniformBufferMemory);
         }
 
-        void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VDeleter<VkImage>& image, VDeleter<VkDeviceMemory>& imageMemory) {
-            VkImageCreateInfo imageInfo = {};
-            imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-            imageInfo.imageType = VK_IMAGE_TYPE_2D;
-            imageInfo.extent.width = width;
-            imageInfo.extent.height = height;
-            imageInfo.extent.depth = 1;
-            imageInfo.mipLevels = 1;
-            imageInfo.arrayLayers = 1;
-            imageInfo.format = format;
-            imageInfo.tiling = tiling;
-            imageInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
-            imageInfo.usage = usage;
-            imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-            imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-            if (vkCreateImage(device, &imageInfo, nullptr, image.replace()) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create image!");
-            }
-
-            VkMemoryRequirements memRequirements;
-            vkGetImageMemoryRequirements(device, image, &memRequirements);
-
-            VkMemoryAllocateInfo allocInfo = {};
-            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-            allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-
-            if (vkAllocateMemory(device, &allocInfo, nullptr, imageMemory.replace()) != VK_SUCCESS) {
-                throw std::runtime_error("failed to allocate image memory!");
-            }
-
-            vkBindImageMemory(device, image, imageMemory, 0);
-        }
-
         void createTextureImage() {
             int texWidth, texHeight, texChannels;
             stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -481,23 +399,6 @@ class HelloTriangleApplication {
             transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
             copyImage(stagingImage, textureImage, texWidth, texHeight);
             transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        }
-
-        void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,VDeleter<VkImageView>& imageView) {
-            VkImageViewCreateInfo viewInfo = {};
-            viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            viewInfo.image = image;
-            viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            viewInfo.format = format;
-            viewInfo.subresourceRange.aspectMask = aspectFlags;
-            viewInfo.subresourceRange.baseMipLevel = 0;
-            viewInfo.subresourceRange.levelCount = 1;
-            viewInfo.subresourceRange.baseArrayLayer = 0;
-            viewInfo.subresourceRange.layerCount = 1;
-
-            if (vkCreateImageView(device, &viewInfo, nullptr, imageView.replace()) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create texture image view!");
-            }
         }
 
         void createTextureImageView() {
@@ -585,16 +486,6 @@ class HelloTriangleApplication {
         }
 
         void initVulkan() {
-            //createInstance();
-            //createSurface();
-            //pickPhysicalDevice();
-            //createLogicalDevice();
-            //createSwapChain();
-            //createImageViews();
-            //createRenderPass();
-            //createDescriptorSetLayout();
-            //createGraphicsPipeline();
-            //createCommandPool();
             createDepthResources();
             createFramebuffers();
 
@@ -605,8 +496,6 @@ class HelloTriangleApplication {
             createVertexBuffer();
             createIndexBuffer();
             createUniformBuffer();
-            //createDescriptorPool();
-            //createDescriptorSet();
             createCommandBuffers();
             createSemaphores();
         }
@@ -622,7 +511,6 @@ class HelloTriangleApplication {
             createFramebuffers();
             createCommandBuffers();
         }
-
 
         void drawFrame() {
             uint32_t imageIndex;

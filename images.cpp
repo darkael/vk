@@ -19,7 +19,6 @@ Image::Image(uint32_t width, uint32_t height, std::shared_ptr<VkDevice> devicept
              VkMemoryPropertyFlags properties)
 : deviceptr(deviceptr), device(*deviceptr.get()) 
 {
-    Device device = *deviceptr.get(); 
     VkImageCreateInfo imageInfo = {};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -77,7 +76,7 @@ private:
 
 ImageView::ImageView(Image image, VkFormat format, VkImageAspectFlags aspectFlags,
       std::shared_ptr<Device> deviceptr)
-    : deviceptr(deviceptr), device(*deviceptr.get())
+: deviceptr(deviceptr), device(*deviceptr.get())
 {
     VkImageViewCreateInfo viewInfo = {};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
