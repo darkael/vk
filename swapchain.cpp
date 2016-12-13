@@ -15,10 +15,10 @@ private:
     std::vector<VkFramebuffer> framebuffers;
 };
 
-SwapChain::SwapChain(std::shared_ptr<Device> deviceptr)
+SwapChain::SwapChain(std::shared_ptr<Device> deviceptr, SwapChainSupport support)
 : deviceptr(deviceptr), device(*deviceptr.get())
 {
-    create();
+    create(support);
     createImageViews();
     createFramebuffers();
 }
@@ -31,22 +31,6 @@ SwapChain::~SwapChain() {
         vkDestroyImageView(device, imageview);
     }
     vkDestroySwapchainKHR(device, swapChain);
-}
-
-VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
-    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-        return capabilities.currentExtent;
-    } else {
-        VkExtent2D actualExtent = {WIDTH, HEIGHT};
-
-        actualExtent.width = std::max(capabilities.minImageExtent.width, 
-                                      std::min(capabilities.maxImageExtent.width,
-                                               actualExtent.width));
-        actualExtent.height = std::max(capabilities.minImageExtent.height, 
-                                       std::min(capabilities.maxImageExtent.height,
-                                                actualExtent.height));
-        return actualExtent;
-    }
 }
 
 struct SwapChainSupport{
@@ -116,19 +100,32 @@ VkPresentModeKHR SwapChainSupport::choosePresentMode(
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-void SwapChain::create() {
-    //SwapChainSupportDetails swapChainSupport = device.querySwapChainSupport();
+VkExtent2D SwapChainSupport::chooseSwapExtent(
+    const VkSurfaceCapabilitiesKHR& capabilities
+) {
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+        return capabilities.currentExtent;
+    } else {
+        VkExtent2D actualExtent = {WIDTH, HEIGHT};
 
-    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+        actualExtent.width = std::max(capabilities.minImageExtent.width, 
+                                      std::min(capabilities.maxImageExtent.width,
+                                               actualExtent.width));
+        actualExtent.height = std::max(capabilities.minImageExtent.height, 
+                                       std::min(capabilities.maxImageExtent.height,
+                                                actualExtent.height));
+        return actualExtent;
+    }
+}
 
-    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+
+void SwapChain::create(SwapChainSupport support) {
+    uint32_t imageCount = support.capabilities.minImageCount + 1;
     if (
-        swapChainSupport.capabilities.maxImageCount > 0
-        && imageCount > swapChainSupport.capabilities.maxImageCount
+        support.capabilities.maxImageCount > 0
+        && imageCount > support.capabilities.maxImageCount
     ) {
-        imageCount = swapChainSupport.capabilities.maxImageCount;
+        imageCount = support.capabilities.maxImageCount;
     }
 
     VkSwapchainCreateInfoKHR createInfo = {};
@@ -136,8 +133,8 @@ void SwapChain::create() {
     createInfo.surface = surface;
 
     createInfo.minImageCount = imageCount;
-    createInfo.imageFormat = surfaceFormat.format;
-    createInfo.imageColorSpace = surfaceFormat.colorSpace;
+    createInfo.imageFormat = support.surfaceFormat.format;
+    createInfo.imageColorSpace = support.surfaceFormat.colorSpace;
     createInfo.imageExtent = extent;
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -157,7 +154,7 @@ void SwapChain::create() {
         std::cout << "Graphics and presentation queue families are the same" << std::endl;
         createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
-    createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+    createInfo.preTransform = support.capabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode = presentMode;
     createInfo.clipped = VK_TRUE;
@@ -177,10 +174,10 @@ void SwapChain::create() {
     swapChain = newSwapChain;
 
     vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
-    swapChainImages.resize(imageCount);
+    images.resize(imageCount);
     vkGetSwapchainImagesKHR(device, swapChain, &imageCount, images.data());
 
-    imageformat = surfaceFormat.format;
+    imageformat = support.surfaceFormat.format;
 }
 
 void SwapChain::createImageViews() {

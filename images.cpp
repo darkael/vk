@@ -9,6 +9,7 @@ public:
 private:
     VkImage image;
     VkDeviceMemory memory;
+    VkFormat format;
     std::shared_ptr<Device> deviceptr;
     Device device;
 
@@ -17,7 +18,7 @@ private:
 Image::Image(uint32_t width, uint32_t height, std::shared_ptr<VkDevice> deviceptr,
              VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
              VkMemoryPropertyFlags properties)
-: deviceptr(deviceptr), device(*deviceptr.get()) 
+: deviceptr(deviceptr), device(*deviceptr.get()), format(format)
 {
     VkImageCreateInfo imageInfo = {};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;

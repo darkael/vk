@@ -10,11 +10,11 @@ private:
     Device device;
 };
 
-RenderPass::RenderPass(std::shared_ptr<Device> deviceptr)
+RenderPass::RenderPass(std::shared_ptr<Device> deviceptr, SwapChainSupport swapChainSupport)
 : deviceptr(deviceptr), device(*deviceptr.get())
 {
     VkAttachmentDescription colorAttachment = {};
-    colorAttachment.format = swapChainImageFormat;
+    colorAttachment.format = swapChainSupport.surfaceFormat.format;
     colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -57,16 +57,16 @@ RenderPass::RenderPass(std::shared_ptr<Device> deviceptr)
                                 | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
 
     std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
-    VkRenderPassCreateInfo renderPassInfo = {};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = attachments.size();
-    renderPassInfo.pAttachments = attachments.data();
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subPass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
+    VkRenderPassCreateInfo info = {};
+    info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    info.attachmentCount = attachments.size();
+    info.pAttachments = attachments.data();
+    info.subpassCount = 1;
+    info.pSubpasses = &subPass;
+    info.dependencyCount = 1;
+    info.pDependencies = &dependency;
 
-    auto res = vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
+    auto res = vkCreateRenderPass(device, &info, nullptr, &renderPass);
     if (res != VK_SUCCESS) {
         throw std::runtime_error("failed to create render pass!");
     }
