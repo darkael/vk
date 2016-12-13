@@ -191,9 +191,9 @@ void SwapChain::createImageViews() {
 
 void createFramebuffers() {
     framebuffers.resize(imageviews.size());
-    for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+    for (size_t i = 0; i < imageviews.size(); i++) {
         std::array<VkImageView, 2> attachments = {
-            swapChainImageViews[i],
+            imageviews[i],
             depthImageView
         };
 
