@@ -1,47 +1,20 @@
-#include "vulkan.h"
+#include <set>
+#include "vk.h"
 
 const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-class Device() {
-public:
-    Device();
-    ~Device();
-    operator VkDevice();
-    operator VkPhysicalDevice();
-    VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates,
-                                 VkImageTiling tiling, VkFormatFeatureFlags features);
-    VkFormat findDepthFormat();
-
-private:
-    VkPhysicalDevice physical = VK_NULL_HANDLE;
-    VkDevice logical = VK_NULL_HANDLE;
-    VkQueue graphicsQueue;
-    VkQueue presentQueue;
-
-    void pickPhysicalDevice();
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-    bool isDeviceSuitable(VkPhysicalDevice device);
-    void createLogicalDevice();
-};
-
-Device::Device() {
+Device::Device(VkInstance instance, VkSurfaceKHR surface)
+: instance(instance), physical(VK_NULL_HANDLE), logical(VK_NULL_HANDLE),
+  surface(surface)
+{
     pickPhysicalDevice();
     createLogicalDevice();
 }
 
 Device::~Device() {
-    vkDestroyDevice(logical);
-}
-
-operator Device::VkDevice() {
-    return logical;
-}
-
-operator Device::VkPhysicalDevice() {
-    return physical;
+    vkDestroyDevice(logical, nullptr);
 }
 
 void Device::pickPhysicalDevice() {
@@ -66,8 +39,8 @@ void Device::pickPhysicalDevice() {
         }
     }
 
-    if (physicalDevice == VK_NULL_HANDLE) {
-        throw std::runtime_error("Failed to find a suitable GPU!"); 
+    if (physical == VK_NULL_HANDLE) {
+        throw std::runtime_error("Failed to find a suitable GPU!");
     }
 }
 
@@ -112,7 +85,7 @@ QueueFamilyIndices Device::findQueueFamilies() {
 }
 
 bool checkDeviceExtensionSupport(VkPhysicalDevice device) {
-    auto count;
+    uint32_t count;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &count, nullptr);
 
     std::vector<VkExtensionProperties> availableExtensions(count);
@@ -140,9 +113,9 @@ bool Device::isDeviceSuitable(VkPhysicalDevice device) {
 
     bool swapChainAdequate = false;
     if (extensionsSupported) {
-        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
+        SwapChainSupport swapChainSupport = querySwapChainSupport(device);
         swapChainAdequate = (!swapChainSupport.formats.empty()
-                             && !swapChainSupport.presentModes.empty());
+                             && !swapChainSupport.presentMode.empty());
     }
     return indices.isComplete() && extensionsSupported && swapChainAdequate;
 }
@@ -196,11 +169,11 @@ void Device::createLogicalDevice() {
 }
 
 
-SwapChainSupportDetails Device::querySwapChainSupport() {
-    SwapChainSupportDetails details; 
+SwapChainSupport Device::querySwapChainSupport() {
+    SwapChainSupport details;
 
     vkGetPhysicalphysicalSurfaceCapabilitiesKHR(physical, surface, &details.capabilities);
-    auto count;
+    uint32_t count;
     vkGetPhysicalphysicalSurfaceFormatsKHR(physical, surface, &count, nullptr);
 
     if (count != 0) {

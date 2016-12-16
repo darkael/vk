@@ -35,15 +35,6 @@ const std::vector<const char*> validationLayers = {
 };
 const bool enableValidationLayers = true;
 
-struct QueueFamilyIndices {
-    int graphicsFamily = -1;
-    int presentFamily = -1;
-
-    bool isComplete() {
-        return graphicsFamily >= 0 && presentFamily >= 0;
-    }
-};
-
 struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;

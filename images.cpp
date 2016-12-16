@@ -1,3 +1,8 @@
+#include <string>
+#include <vector>
+#include <GLFW/glfw3.h>
+#include "vk.h"
+
 class Image {
 public:
     Image(uint32_t width, uint32_t height, std::shared_ptr<VkDevice> deviceptr,

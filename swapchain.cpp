@@ -1,20 +1,4 @@
-class SwapChain {
-public:
-    SwapChain();
-    ~SwapChain();
-
-    VkExtent2D extent;
-
-private:
-    std::shared_ptr<Device> deviceptr;
-    Device device;
-    VkSwapChainKHR swapChain;
-    std::vector<VkImage> images;
-    std::vector<VkImageView> imageviews;
-    VkFormat imageformat;
-    std::vector<VkFramebuffer> framebuffers;
-    SwapChainSupport support;
-};
+#include "vk.h"
 
 SwapChain::SwapChain(std::shared_ptr<Device> deviceptr, SwapChainSupport support, RenderPass renderPass)
 : deviceptr(deviceptr), device(*deviceptr.get(), support(support), renderPass(renderPass)
@@ -32,19 +16,6 @@ SwapChain::~SwapChain() {
         vkDestroyImageView(device, imageview);
     }
     vkDestroySwapchainKHR(device, swapChain);
-}
-
-struct SwapChainSupport{
-    SwapChainSupport(std::shared_ptr<Device> deviceptr, VkSurfaceKHR surface);
-    VkSurfaceFormatKHR chooseSurfaceFormat(
-        const std::vector<VkSurfaceFormatKHR>& availableFormats);
-
-    std::shared_ptr<Device> deviceptr;
-    Device device;
-    VkSurfaceCapabilitiesKHR capabilities;
-
-    VkSurfaceFormatKHR surfaceFormat;
-    VkPresentModeKHR presentMode;
 }
 
 SwapChainSupport::SwapChainSupport(std::shared_ptr<Device> deviceptr, VkSurfaceKHR surface)
