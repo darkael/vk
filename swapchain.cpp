@@ -13,10 +13,11 @@ private:
     std::vector<VkImageView> imageviews;
     VkFormat imageformat;
     std::vector<VkFramebuffer> framebuffers;
+    SwapChainSupport support;
 };
 
-SwapChain::SwapChain(std::shared_ptr<Device> deviceptr, SwapChainSupport support)
-: deviceptr(deviceptr), device(*deviceptr.get())
+SwapChain::SwapChain(std::shared_ptr<Device> deviceptr, SwapChainSupport support, RenderPass renderPass)
+: deviceptr(deviceptr), device(*deviceptr.get(), support(support), renderPass(renderPass)
 {
     create(support);
     createImageViews();
@@ -206,9 +207,9 @@ void createFramebuffers() {
         info.height = swapChainExtent.height;
         info.layers = 1;
 
-        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, swapChainFramebuffers[i].replace()) != VK_SUCCESS) {
+        auto res = vkCreateFramebuffer(device, &framebufferInfo, nullptr, framebuffers[i])
+        if (res != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
         }
     }
 }
-

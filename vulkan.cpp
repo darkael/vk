@@ -487,7 +487,6 @@ class HelloTriangleApplication {
 
         void initVulkan() {
             createDepthResources();
-            createFramebuffers();
 
             createTextureImage();
             createTextureImageView();

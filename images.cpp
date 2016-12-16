@@ -55,9 +55,22 @@ Image::Image(uint32_t width, uint32_t height, std::shared_ptr<VkDevice> devicept
     vkBindImageMemory(device, image, memory, 0);
 }
 
+void Image::loadPixels(int width, int height, void* pixels)
+{
+    void* data;
+    VkDeviceSize imageSize = width * height * 4;
+
+    vkMapMemory(device, stagingImageMemory, 0, imageSize, 0, &data);
+    memcpy(data, pixels, (size_t) imageSize);
+    vkUnmapMemory(device, stagingImageMemory);
+}
+
 operator Image::VkImage() {
     return image;
 }
+
+void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+
 
 Image::~Image() {
     vkFreeMemory(*deviceptr.get(), memory);
