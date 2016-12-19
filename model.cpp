@@ -1,4 +1,8 @@
-void Model::Model(Texture texture, const string& filename)
+#include <vk.h>
+#include "tiny_obj_loader.h"
+#include <unordered_map>
+
+Model::Model(Texture texture, const std::string& filename)
 : texture(texture)
 {
     tinyobj::attrib_t attrib;
@@ -41,7 +45,7 @@ void Model::Model(Texture texture, const string& filename)
     }
 }
 
-void createIndexBuffer() {
+void Model::createIndexBuffer() {
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
     VDeleter<VkBuffer> stagingBuffer{device, vkDestroyBuffer};
@@ -58,7 +62,7 @@ void createIndexBuffer() {
     copyBuffer(stagingBuffer, indexBuffer, bufferSize);
 }
 
-void createVertexBuffer() {
+void Model::createVertexBuffer() {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
 

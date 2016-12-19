@@ -1,4 +1,6 @@
-CommandBuffer::CommandBuffer(shared_ptr<Device> deviceptr, CommandPool commandPool)
+#include "vk.h"
+
+CommandBuffer::CommandBuffer(std::shared_ptr<Device> deviceptr, CommandPool commandPool)
 :deviceptr(deviceptr), device(*deviceptr.get()), commandPool(commandPool)
 {
 }
@@ -7,7 +9,7 @@ CommandBuffer::~CommandBuffer() {
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
-VkCommandBuffer beginSingleTimeCommands() {
+void CommandBuffer::beginSingleTimeCommands() {
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -22,11 +24,9 @@ VkCommandBuffer beginSingleTimeCommands() {
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
     vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-    return commandBuffer;
 }
 
-void endSingleTimeCommands() {
+void CommandBuffer::endSingleTimeCommands() {
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo = {};
@@ -34,8 +34,7 @@ void endSingleTimeCommands() {
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(graphicsQueue);
+    device.queueSubmit(&submitInfo)
 
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }

@@ -3,23 +3,6 @@
 #include <GLFW/glfw3.h>
 #include "vk.h"
 
-class Image {
-public:
-    Image(uint32_t width, uint32_t height, std::shared_ptr<VkDevice> deviceptr,
-          VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
-          VkMemoryPropertyFlags properties);
-    operator VkImage();
-    ~Image();
-
-private:
-    VkImage image;
-    VkDeviceMemory memory;
-    VkFormat format;
-    std::shared_ptr<Device> deviceptr;
-    Device device;
-
-};
-
 Image::Image(uint32_t width, uint32_t height, std::shared_ptr<VkDevice> deviceptr,
              VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
              VkMemoryPropertyFlags properties)
@@ -81,17 +64,6 @@ Image::~Image() {
     vkFreeMemory(*deviceptr.get(), memory);
     vkDestroyImage(image);
 }
-
-class ImageView {
-public:
-    Image(Image image, VkFormat format, VkImageAspectFlags aspectFlags,
-          std::shared_ptr<Device> deviceptr);
-    ~Image();
-private:
-    VkImageView imageView;;
-    std::shared_ptr<Device> deviceptr;
-    Device device;
-};
 
 ImageView::ImageView(Image image, VkFormat format, VkImageAspectFlags aspectFlags,
       std::shared_ptr<Device> deviceptr)

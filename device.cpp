@@ -113,8 +113,8 @@ bool Device::isDeviceSuitable(VkPhysicalDevice device) {
 
     bool swapChainAdequate = false;
     if (extensionsSupported) {
-        SwapChainSupport swapChainSupport = querySwapChainSupport(device);
-        swapChainAdequate = (!swapChainSupport.formats.empty()
+        SwapChainSupport swapChainSupport = querySwapChainSupport();
+        swapChainAdequate = (!swapChainSupport.details.formats.empty()
                              && !swapChainSupport.presentMode.empty());
     }
     return indices.isComplete() && extensionsSupported && swapChainAdequate;
@@ -241,3 +241,7 @@ VkFormat Device::findDepthFormat() {
     );
 }
 
+void Device::queueSubmit(VkSubmitInfo submitInfo) {
+    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(graphicsQueue);
+}

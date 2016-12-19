@@ -7,6 +7,8 @@
 #include <memory>
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
+#include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
 
 struct QueueFamilyIndices {
     int graphicsFamily = -1;
@@ -50,18 +52,7 @@ private:
     void createSurface(GLFWwindow *window);
 };
 
-struct SwapChainSupport{
-    SwapChainSupport(std::shared_ptr<Device> deviceptr, VkSurfaceKHR surface);
-    VkSurfaceFormatKHR chooseSurfaceFormat(
-        const std::vector<VkSurfaceFormatKHR>& availableFormats);
-
-    std::shared_ptr<Device> deviceptr;
-    Device device;
-    VkSurfaceCapabilitiesKHR capabilities;
-
-    VkSurfaceFormatKHR surfaceFormat;
-    VkPresentModeKHR presentMode;
-};
+struct SwapChainSupport;
 
 class Device {
 public:
@@ -87,7 +78,21 @@ private:
     bool checkDeviceExtensionSupport(VkPhysicalDevice device);
     bool isDeviceSuitable(VkPhysicalDevice device);
     void createLogicalDevice();
-	SwapChainSupport querySwapChainSupport() {
+    void queueSubmit(VkSubmitInfo *submitInfo);
+	SwapChainSupport querySwapChainSupport();
+};
+
+struct SwapChainSupport{
+    SwapChainSupport(std::shared_ptr<Device> deviceptr, VkSurfaceKHR surface);
+    VkSurfaceFormatKHR chooseSurfaceFormat(
+        const std::vector<VkSurfaceFormatKHR>& availableFormats);
+
+    std::shared_ptr<Device> deviceptr;
+    Device device;
+    VkSurfaceCapabilitiesKHR capabilities;
+
+    VkSurfaceFormatKHR surfaceFormat;
+    VkPresentModeKHR presentMode;
 };
 
 class SwapChain {
@@ -120,24 +125,55 @@ private:
     VkCommandPool pool;
 };
 
+class Image {
+public:
+    Image(uint32_t width, uint32_t height, std::shared_ptr<VkDevice> deviceptr,
+          VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage,
+          VkMemoryPropertyFlags properties);
+    operator VkImage();
+    ~Image();
+
+private:
+    VkImage image;
+    VkDeviceMemory memory;
+    VkFormat format;
+    std::shared_ptr<Device> deviceptr;
+    Device device;
+
+};
+
+class ImageView {
+public:
+    ImageView(Image image, VkFormat format, VkImageAspectFlags aspectFlags,
+          std::shared_ptr<Device> deviceptr);
+    ~ImageView();
+private:
+    VkImageView imageView;;
+    std::shared_ptr<Device> deviceptr;
+    Device device;
+};
+
 class CommandBuffer {
 public:
-    CommandBuffer(shared_ptr<Device> deviceptr, CommandPool commandPool);
+    CommandBuffer(std::shared_ptr<Device> deviceptr, CommandPool commandPool);
     ~CommandBuffer();
     operator VkCommandBuffer() { return commandBuffer; }
     void submit();
 
 private:
+	std::shared_ptr<Device> deviceptr;
+	Device device;
+	CommandPool commandPool;
     VkCommandBuffer commandBuffer;
     virtual void execute() = 0;
     void beginSingleTimeCommands();
     void endSingleTimeCommands();
 };
 
-class TransitionImageLayoutCommandBuffer : public CommandBuffer {
+class ImageTransitionCmdBuffer : public CommandBuffer {
 public:
-    ImageTransitionCmdBuffer(shared_ptr<Device> deviceptr,
-                             CommandPool commandPool
+    ImageTransitionCmdBuffer(std::shared_ptr<Device> deviceptr,
+                             CommandPool commandPool,
                              Image image,
                              VkImageLayout oldLayout,
                              VkImageLayout newLayout);
@@ -147,14 +183,14 @@ private:
     VkImageLayout oldLayout;
     VkImageLayout newLayout;
     Image image;
-}
+};
 
 class Texture {
 public:
     Texture(std::shared_ptr<Device> deviceptr, CommandPool commandPool);
     ~Texture();
 
-private
+private:
     std::shared_ptr<Device> deviceptr;
     Image stagingImage;
     Image image;
@@ -163,16 +199,38 @@ private
     VkSampler sampler;
 };
 
+struct Vertex {
+    glm::vec3 pos;
+    glm::vec3 color;
+    glm::vec2 texCoord;
+
+    VkVertexInputBindingDescription getBindingDescription();
+    std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions();
+    bool operator==(const Vertex& other) const;
+};
+
+namespace std {
+    template<> struct hash<Vertex> {
+        size_t operator()(Vertex const& vertex) const {
+            return ((hash<glm::vec3>()(vertex.pos) ^
+                        (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ 
+                (hash<glm::vec2>()(vertex.texCoord) << 1);
+        }
+    };
+};
+
 class Model {
 public:
-    void Model(Texture texture, const string& filename);
+    Model(Texture texture, const std::string& filename);
     ~Model();
+	void createIndexBuffer();
+	void createVertexBuffer();
 
 private:
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 
     Texture texture;
-}
+};
 
 #endif
