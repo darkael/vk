@@ -17,7 +17,6 @@ struct QueueFamilyIndices {
     }
 };
 
-
 class Instance {
 public:
     Instance(const std::string& name);
@@ -74,7 +73,6 @@ public:
     operator VkDevice() { return logical; }
     operator VkPhysicalDevice() { return physical; }
 
-
 private:
     VkPhysicalDevice physical = VK_NULL_HANDLE;
     VkDevice logical = VK_NULL_HANDLE;
@@ -109,5 +107,72 @@ private:
     std::vector<VkFramebuffer> framebuffers;
     SwapChainSupport support;
 };
+
+class CommandPool {
+public:
+    CommandPool(std::shared_ptr<Device> deviceptr);
+    ~CommandPool();
+    operator VkCommandPool() { return pool; }
+
+private:
+    std::shared_ptr<Device> deviceptr;
+    Device device;
+    VkCommandPool pool;
+};
+
+class CommandBuffer {
+public:
+    CommandBuffer(shared_ptr<Device> deviceptr, CommandPool commandPool);
+    ~CommandBuffer();
+    operator VkCommandBuffer() { return commandBuffer; }
+    void submit();
+
+private:
+    VkCommandBuffer commandBuffer;
+    virtual void execute() = 0;
+    void beginSingleTimeCommands();
+    void endSingleTimeCommands();
+};
+
+class TransitionImageLayoutCommandBuffer : public CommandBuffer {
+public:
+    ImageTransitionCmdBuffer(shared_ptr<Device> deviceptr,
+                             CommandPool commandPool
+                             Image image,
+                             VkImageLayout oldLayout,
+                             VkImageLayout newLayout);
+    void execute();
+
+private:
+    VkImageLayout oldLayout;
+    VkImageLayout newLayout;
+    Image image;
+}
+
+class Texture {
+public:
+    Texture(std::shared_ptr<Device> deviceptr, CommandPool commandPool);
+    ~Texture();
+
+private
+    std::shared_ptr<Device> deviceptr;
+    Image stagingImage;
+    Image image;
+    Device device;
+
+    VkSampler sampler;
+};
+
+class Model {
+public:
+    void Model(Texture texture, const string& filename);
+    ~Model();
+
+private:
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
+
+    Texture texture;
+}
 
 #endif
