@@ -146,3 +146,49 @@ void TransitionImageLayoutCommandBuffer::execute() {
         1, &barrier
     );
 }
+
+CopyBufCmdBuffer::CopyBufCmdBuffer(shared_ptr<Device> deviceptr,
+                                   CommandPool commandPool,
+                                   VkBuffer& src,
+                                   VkBuffer& dst,
+                                   VkDeviceSize size)
+: CommandBuffer(deviceptr, commandPool),
+  src(src), dst(dst), size(size) 
+{ }
+
+void CopyBufCmdBuffer::execute() {
+    VkBufferCopy copyRegion = {};
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+}
+
+CopyImageCmdBuffer::CopyImageCmdBuffer(shared_ptr<Device> deviceptr,
+                                       CommandPool commandPool,
+                                       Image src,
+                                       Image dst)
+: CommandBuffer(deviceptr, commandPool),
+  src(src), dst(dst), size(size)
+{ }
+
+CopyImageCmdBuffer::execute() {
+    VkImageSubresourceLayers subResource = {};
+    subResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    subResource.baseArrayLayer = 0;
+    subResource.mipLevel = 0;
+    subResource.layerCount = 1;
+
+    VkImageCopy region = {};
+    region.srcSubresource = subResource;
+    region.dstSubresource = subResource;
+    region.srcOffset = {0, 0, 0};
+    region.dstOffset = {0, 0, 0};
+    region.extent.width = src.width;
+    region.extent.height = src.height;
+    region.extent.depth = 1;
+    vkCmdCopyImage(
+        commandBuffer,
+        src, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        dst, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1, &region
+    );
+}

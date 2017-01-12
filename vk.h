@@ -151,6 +151,24 @@ private:
     VkImageView imageView;;
     std::shared_ptr<Device> deviceptr;
     Device device;
+}
+
+template <typename T> 
+class Buffer {
+public:
+    Buffer(std::sharedptr<Device> deviceptr, std::vector<T> data);
+    ~Buffer();
+    size_t size();
+    Buffer<T>::transferMemory(Buffer<T>& dst)
+
+
+private:
+    std::vector<T> contents;
+    std::sharedptr<Device> deviceptr;
+    Device device;
+    size_t size;
+    VkBuffer buffer; 
+    VkDeviceMemory memory;
 };
 
 class CommandBuffer {
@@ -184,6 +202,28 @@ private:
     VkImageLayout newLayout;
     Image image;
 };
+
+class CopyBufCmdBuffer : public CommandBuffer {
+public:
+    CopyBufCmdBuffer(shared_ptr<Device> deviceptr,
+                     CommandPool commandPool,
+                     Buffer src,
+                     Buffer dst);
+private:
+    Buffer src;
+    Buffer dst;
+};
+
+class CopyImageCmdBuffer : public CommandBuffer {
+public:
+    CopyImageCmdBuffer(shared_ptr<Device> deviceptr,
+                       CommandPool commandPool,
+                       Buffer source,
+                       Buffer destination);
+private:
+    Image src;
+    Image dst;
+}
 
 class Texture {
 public:
